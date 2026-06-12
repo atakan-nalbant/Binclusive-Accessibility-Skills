@@ -59,3 +59,16 @@ This catalog contains anonymized, reusable accessibility patterns only. Do not a
 - Correct fix: Use a stable `id` plus `<label htmlFor>`, or `aria-labelledby`; associate help/error text with `aria-describedby`.
 - Verification: Accessibility tree exposes the intended name and description.
 - False positives / exceptions: A control can be validly named by `aria-label` or `aria-labelledby` when no visible label is appropriate.
+
+### PATTERN-REACT-004: Data table lacks semantic headers or caption
+- Platform: Web
+- Framework: React / Next.js
+- Component type: Table / Data grid
+- WCAG / APG: WCAG 1.3.1 Info and Relationships, WCAG 2.4.6 Headings and Labels
+- Severity default: Serious
+- Fix type default: SAFE when adding caption/header semantics; RUNTIME-CHECK for virtualized or third-party grids.
+- Bad shape: A data table renders without `<caption>`, uses `<td>` for headers, omits `scope`/`headers`, or renders a visual table with `<div>` elements and no equivalent grid semantics.
+- Detection hints: reusable `Table`, `DataTable`, `Grid`, `columns` configs, `renderHeader`, sortable headers, `<table>` without `<caption>`, `<thead>` containing `<td>`.
+- Correct fix: Use native table markup for tabular data; provide a table name, semantic `<th>` headers, `scope` for simple relationships, and `id`/`headers` for complex relationships.
+- Verification: Screen reader can identify the table name and announce the correct row/column headers for representative cells.
+- False positives / exceptions: Do not require `<caption>` for layout tables that are correctly removed from table semantics; do not force native tables for interactive widgets that correctly implement the ARIA grid pattern.

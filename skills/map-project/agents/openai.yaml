@@ -1,7 +1,7 @@
 interface:
   display_name: "Map Project"
-  short_description: "Haritala: React/Next.js audit scope"
-  default_prompt: "Use $map-project to map this React/Next.js project for accessibility auditing; Turkce: Binclusive projemi haritala."
+  short_description: "Haritala: web audit scope"
+  default_prompt: "Use $map-project to map this React/Next.js or ASP.NET/ASPX project for accessibility auditing; Turkce: Binclusive projemi haritala."
 
 policy:
   allow_implicit_invocation: true

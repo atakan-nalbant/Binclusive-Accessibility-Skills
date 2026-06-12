@@ -2,7 +2,7 @@
 
 Use the canonical Agent Skills in this repository as the source of truth:
 
-- `skills/map-project/SKILL.md` inventories React/Next.js routes, views, components, dependencies, localization, and inline UI for accessibility review.
+- `skills/map-project/SKILL.md` inventories React/Next.js or ASP.NET/ASPX routes, views, pages, controls, dependencies, localization, and inline UI for accessibility review.
 - `skills/audit-accessibility/SKILL.md` audits only the mapped scope and writes actionable accessibility TODOs.
 - `skills/fix-accessibility/SKILL.md` fixes selected TODO tasks with severity/risk controls and verification notes.
 

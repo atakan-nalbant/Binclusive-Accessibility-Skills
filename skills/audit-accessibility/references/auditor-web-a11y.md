@@ -1,6 +1,6 @@
-# Auditor Web A11Y Reference: React / Next.js
+# Auditor Web A11Y Reference
 
-Use this reference when `audit-accessibility` audits a React or Next.js web scope from a prior Binclusive project map. The auditor observes and documents only; it never edits source code.
+Use this reference when `audit-accessibility` audits a web scope from a prior Binclusive project map. Pair it with the framework-specific reference for React/Next.js, ASP.NET MVC/Razor, or ASPX/Web Forms. The auditor observes and documents only; it never edits source code.
 
 ## Privacy Boundary
 
@@ -51,6 +51,17 @@ Read a selected `Binclusive-auditing/*_project-map.md` first. It is the source o
 - Informative SVGs without accessible name.
 - Video/audio missing captions, transcript, or accessible controls.
 - Charts/maps/canvas lacking text alternatives.
+
+### Tables and Data Grids
+
+- Data tables without a programmatic name, preferably `<caption>`; `aria-label` or `aria-labelledby` is acceptable when a visible caption is not appropriate.
+- Header cells rendered as `<td>` instead of `<th>`.
+- Column and row headers missing correct `scope="col"` or `scope="row"` when the header relationship is simple.
+- Complex tables missing reliable `id`/`headers` associations when `scope` is not enough.
+- Empty, icon-only, or visually hidden headers that do not provide meaningful accessible header text.
+- Sortable columns missing sort state such as `aria-sort`, or using icons/color alone to communicate sort direction.
+- Layout tables used for visual positioning without being marked/presented so assistive technology does not treat them as data tables.
+- Responsive table transformations that visually detach cells from their headers or require runtime verification of header relationships.
 
 ### Dynamic Content and Motion
 

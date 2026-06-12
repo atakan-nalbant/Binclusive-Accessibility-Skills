@@ -1,11 +1,11 @@
 ---
 name: map-project
-description: Map a React or Next.js codebase for accessibility auditing. Use when the user says /mapaccessibility, map accessibility, project map, component/view map, "binclusive projemi haritala", "projeyi erişilebilirlik için haritala", "accessibility için map çıkar", "proje haritası çıkar", or wants to inventory routes, views, shared components, dependencies, localization, and inline UI before an audit/test.
+description: Map a React, Next.js, ASP.NET, or ASPX/Web Forms codebase for accessibility auditing. Use when the user says /mapaccessibility, map accessibility, project map, component/view map, "binclusive projemi haritala", "projeyi erişilebilirlik için haritala", "accessibility için map çıkar", "proje haritası çıkar", or wants to inventory routes, views, shared components, dependencies, localization, and inline UI before an audit/test.
 ---
 
 # Map Project
 
-Create an evidence-based project map for a React/Next.js app. This skill observes and documents only. It never edits source code.
+Create an evidence-based project map for a React/Next.js or ASP.NET/ASPX app. This skill observes and documents only. It never edits source code.
 
 ## Start Here
 
@@ -17,15 +17,15 @@ Create an evidence-based project map for a React/Next.js app. This skill observe
 4. Ask scope questions before scanning unless the user already gave exact scope:
    - Whole project, selected views/routes, selected components, a folder path, or free-form target list?
    - Should localization/hardcoded strings be included? Default: yes.
-   - Is this React/Next.js web? If not, state this first version is optimized for React/Next.js and continue only if the user wants a best-effort map.
+   - Is this React/Next.js web, ASP.NET MVC/Razor, or ASPX/Web Forms? If not, state which web references are available and continue only if the user wants a best-effort map.
 5. Create `Binclusive-auditing/` in the project root if missing.
 6. Write one map file named `<project-name>_<YYYY-MM-DD>_project-map.md` inside `Binclusive-auditing/`.
 
 ## Source Of Truth
 
-Read `references/mapper-web.md` for the detailed React/Web mapping workflow and output sections. Keep that reference out of context until after the user confirms mapping scope.
+Read `references/mapper-web.md` for the detailed React/Web mapping workflow and output sections. For ASP.NET MVC/Razor or ASPX/Web Forms projects, also read `references/mapper-aspnet.md`. Keep these references out of context until after the user confirms mapping scope.
 
-For Swift/iOS or Android/Kotlin projects, the inspector can identify platform signals, but this v1 skill only has detailed React/Next.js mapping rules. Report mobile detections as signal-only unless a mobile mapping reference has been added.
+For Swift/iOS or Android/Kotlin projects, the inspector can identify platform signals, but this skill only has detailed web mapping rules. Report mobile detections as signal-only unless a mobile mapping reference has been added.
 
 ## Required Output
 

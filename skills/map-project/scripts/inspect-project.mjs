@@ -112,6 +112,12 @@ function detectPackageManagers(files) {
   ) {
     managers.push(names.has("gradlew") || names.has("gradlew.bat") ? "gradle-wrapper" : "gradle");
   }
+  if (
+    [...names].some((name) => /(^|\/)packages\.config$/.test(name)) ||
+    [...names].some((name) => /\.(csproj|vbproj|fsproj)$/.test(name))
+  ) {
+    managers.push("nuget");
+  }
   return managers;
 }
 
@@ -277,13 +283,113 @@ function detectAndroid(files) {
   };
 }
 
+function extractPackageReferences(file) {
+  const text = safeRead(file, 200000);
+  if (text === null) return [];
+  const references = [];
+  for (const match of text.matchAll(/<PackageReference\b[^>]*\bInclude=["']([^"']+)["'][^>]*(?:\bVersion=["']([^"']+)["'])?[^>]*>/gi)) {
+    references.push({ name: match[1], version: match[2] ?? null, source: rel(file) });
+  }
+  for (const match of text.matchAll(/<package\b[^>]*\bid=["']([^"']+)["'][^>]*(?:\bversion=["']([^"']+)["'])?[^>]*>/gi)) {
+    references.push({ name: match[1], version: match[2] ?? null, source: rel(file) });
+  }
+  return references;
+}
+
+function pickPackageReferences(references, names) {
+  const wanted = new Set(names.map((name) => name.toLowerCase()));
+  return references.filter((reference) => wanted.has(reference.name.toLowerCase()));
+}
+
+function detectAspNet(files) {
+  const fileSet = new Set(files.map((file) => rel(file)));
+  const projectFiles = files.filter((file) => /\.(sln|csproj|vbproj|fsproj)$/.test(file)).map(rel);
+  const webConfigFiles = files.filter((file) => /(^|[/\\])web\.config$/i.test(file)).map(rel);
+  const globalAsaxFiles = files.filter((file) => /(^|[/\\])Global\.asax(\.(cs|vb))?$/i.test(file)).map(rel);
+  const aspxPages = files.filter((file) => /\.aspx$/i.test(file)).map(rel);
+  const userControls = files.filter((file) => /\.ascx$/i.test(file)).map(rel);
+  const masterPages = files.filter((file) => /\.master$/i.test(file)).map(rel);
+  const razorViews = files.filter((file) => /\.(cshtml|vbhtml)$/i.test(file)).map(rel);
+  const controllers = files.filter((file) => /(^|[/\\])Controllers[/\\].+Controller\.(cs|vb)$/i.test(file)).map(rel);
+  const routeFiles = files
+    .filter((file) => /(^|[/\\])(RouteConfig|Startup|Program)\.(cs|vb)$/i.test(file))
+    .map(rel);
+  const resourceFiles = files.filter((file) => /\.resx$/i.test(file)).slice(0, 100).map(rel);
+  const packageReferences = files
+    .filter((file) => /\.(csproj|vbproj|fsproj)$/i.test(file) || /(^|[/\\])packages\.config$/i.test(file))
+    .flatMap(extractPackageReferences);
+
+  const webFormsLikely = aspxPages.length > 0 || userControls.length > 0 || masterPages.length > 0;
+  const mvcLikely = controllers.length > 0 || [...fileSet].some((name) => /(^|\/)Views\/.+\.(cshtml|vbhtml)$/i.test(name));
+  const razorPagesLikely = [...fileSet].some((name) => /(^|\/)Pages\/.+\.cshtml$/i.test(name));
+  const aspNetCoreLikely =
+    [...fileSet].some((name) => /(^|\/)(Program|Startup)\.cs$/i.test(name)) &&
+    packageReferences.some((reference) => reference.name.toLowerCase().startsWith("microsoft.aspnetcore"));
+
+  const framework =
+    webFormsLikely && mvcLikely
+      ? "aspnet-mixed"
+      : webFormsLikely
+        ? "aspnet-webforms"
+        : razorPagesLikely
+          ? "aspnet-razor-pages"
+          : mvcLikely
+            ? aspNetCoreLikely
+              ? "aspnet-core-mvc"
+              : "aspnet-mvc"
+            : aspNetCoreLikely
+              ? "aspnet-core"
+              : projectFiles.length > 0 || webConfigFiles.length > 0
+                ? "aspnet-unknown"
+                : null;
+
+  const uiLibraryReferences = pickPackageReferences(packageReferences, [
+    "Telerik.UI.for.AspNet.Ajax",
+    "Telerik.UI.for.AspNet.Mvc",
+    "Kendo.Mvc",
+    "DevExpress.Web",
+    "AjaxControlToolkit",
+    "Microsoft.jQuery.Unobtrusive.Validation",
+    "jQuery.Validation",
+    "bootstrap",
+  ]);
+
+  return {
+    framework,
+    projectFiles: projectFiles.slice(0, 50),
+    webConfigFiles: webConfigFiles.slice(0, 50),
+    globalAsaxFiles: globalAsaxFiles.slice(0, 20),
+    routeFiles: routeFiles.slice(0, 50),
+    webForms: {
+      aspxPages: aspxPages.slice(0, 100),
+      userControls: userControls.slice(0, 100),
+      masterPages: masterPages.slice(0, 50),
+    },
+    mvc: {
+      controllers: controllers.slice(0, 100),
+      razorViews: razorViews.slice(0, 150),
+      sharedViews: razorViews.filter((name) => /(^|\/)(Views\/Shared|Pages\/Shared)\//i.test(name)).slice(0, 75),
+    },
+    localizationSignals: resourceFiles,
+    a11yRelevantDependencies: uiLibraryReferences,
+  };
+}
+
 const files = walk(root);
 const pkg = safeJson(path.join(root, "package.json"));
 const web = detectWeb(files, pkg);
 const ios = detectIos(files);
 const android = detectAndroid(files);
+const aspNet = detectAspNet(files);
 const detectedPlatforms = [];
 if (web.framework !== null || pkg?.dependencies?.react || pkg?.devDependencies?.react) detectedPlatforms.push("web-react");
+if (aspNet.framework !== null) {
+  detectedPlatforms.push(
+    aspNet.framework === "aspnet-webforms" || aspNet.framework === "aspnet-mixed"
+      ? "web-aspnet-aspx"
+      : "web-aspnet",
+  );
+}
 if (ios.swiftFileCount > 0 || ios.xcodeProjects.length > 0 || ios.swiftPackages.length > 0) {
   detectedPlatforms.push(ios.swiftuiSignals.length > 0 ? "ios-swiftui" : "ios-swift");
 }
@@ -307,6 +413,7 @@ const result = {
   web,
   ios,
   android,
+  aspNet,
   notes,
 };
 

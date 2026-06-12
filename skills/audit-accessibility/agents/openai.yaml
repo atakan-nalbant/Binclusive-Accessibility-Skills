@@ -1,7 +1,7 @@
 interface:
   display_name: "Audit Accessibility"
   short_description: "Test et: accessibility TODO cikar"
-  default_prompt: "Use $audit-accessibility to test the mapped React/Next.js project and produce accessibility-todo.md; Turkce: Binclusive projemi test et."
+  default_prompt: "Use $audit-accessibility to test the mapped React/Next.js or ASP.NET/ASPX project and produce accessibility-todo.md; Turkce: Binclusive projemi test et."
 
 policy:
   allow_implicit_invocation: true

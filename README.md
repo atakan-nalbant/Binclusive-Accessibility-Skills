@@ -1,6 +1,6 @@
 # Binclusive Accessibility Skills
 
-Reusable Agent Skills for mapping, auditing, and fixing accessibility issues in React and Next.js projects.
+Reusable Agent Skills for mapping, auditing, and fixing accessibility issues in React, Next.js, ASP.NET, and ASPX/Web Forms projects.
 
 This repository keeps one canonical skill source and uses small adapters for Codex, Claude Code, and GitHub Copilot.
 
