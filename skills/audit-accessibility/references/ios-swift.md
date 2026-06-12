@@ -60,6 +60,32 @@ Audit only the mapped iOS screens, flows, components, storyboards/xibs, and plat
 - Custom contrast, disabled state, placeholder, chart, or dark mode colors requiring runtime contrast verification.
 - RTL-sensitive layouts using left/right instead of leading/trailing, or directional icons not considered for mirroring.
 
+### Dynamic Type Static Risk Signals
+
+Flag these as Dynamic Type clipping/overlap risks when they affect user-facing text, controls, rows, cards, or form content. Do not claim the UI definitely overlaps from static code alone; phrase findings as "Large Dynamic Type sizes may cause clipping or overlap" and use `RUNTIME-CHECK` unless the required fix clearly changes visual layout, in which case use `VISUAL-IMPACT`.
+
+SwiftUI risk signals:
+
+- `.frame(height:)`, `.frame(width:)`, fixed min/max dimensions, or small fixed-size containers around `Text`, `Button`, `Label`, form rows, cards, list rows, toolbar items, or badges.
+- `.lineLimit(1)`, aggressive `.truncationMode(...)`, or compact text-only layouts where the full value is important.
+- `.clipped()`, `.clipShape(...)`, masks, fixed overlays, or clipped scroll/card containers that can hide enlarged text or focus outlines.
+- `.overlay`, `ZStack`, `.offset`, or `.position` used to visually stack text, badges, icons, buttons, or controls without flexible layout space.
+- `.minimumScaleFactor(...)` used as the primary strategy for fitting important text instead of allowing wrapping or layout growth.
+- Custom `.font(.system(size:))`, `.font(.custom(...))`, or design-system font wrappers that do not map to scalable text styles or otherwise respect Dynamic Type.
+- Dense `HStack`, card, row, or toolbar compositions that combine multiple `Text` values, icons, badges, and buttons without wrapping, priority, or vertical fallback.
+- Fixed-height list rows, cards, toolbars, headers, footers, or form rows that contain localized or dynamic text.
+
+UIKit risk signals:
+
+- `UILabel.numberOfLines = 1` or equivalent single-line configuration on labels that can receive localized, user, server, or dynamic content.
+- `lineBreakMode = .byTruncatingTail`, `.byTruncatingMiddle`, `.byClipping`, or similar truncation where the full text is important.
+- `heightAnchor.constraint(equalToConstant:)`, fixed cell/header/footer heights, or fixed container constraints around labels and controls.
+- Manual `CGRect`, `frame`, `bounds`, or layout calculations used for text-bearing views instead of constraints that can grow.
+- `adjustsFontForContentSizeCategory = false`, missing `adjustsFontForContentSizeCategory`, or custom fonts without `UIFontMetrics` or text styles.
+- Auto Layout constraints that prevent labels from expanding, such as fixed height plus top/bottom constraints, low vertical hugging/resistance mistakes, or required constraints between adjacent labels that can collide.
+- `UITableViewCell` or `UICollectionViewCell` reuse paths that update text but do not update layout/accessibility state or rely on fixed row/item sizes.
+- Storyboard/xib combinations of fixed height, single-line labels, custom fonts, compression resistance overrides, or clipped containers.
+
 ## UIKit Checklist
 
 ### Semantics and Activation
@@ -111,7 +137,8 @@ Mark `RUNTIME-CHECK` when static code cannot prove the issue:
 - Include problems only; do not list accessible elements.
 - Every finding must reference code or storyboard/xib markup that was actually read.
 - Prefer native SwiftUI/UIKit controls and platform accessibility APIs before custom accessibility workarounds.
-- Do not invent VoiceOver output, rendered layout, contrast measurements, or touch target dimensions.
+- Do not invent VoiceOver output, rendered layout, contrast measurements, touch target dimensions, or confirmed Dynamic Type overlap/clipping.
+- When static code shows fixed sizing, truncation, clipping, overlay, absolute positioning, non-scaling fonts, or constrained cells, report it as a Dynamic Type risk and require simulator/device verification at large accessibility text sizes.
 - Never recommend placeholder labels such as `button`, `image`, `icon`, or `view`.
 - Accessible names must be specific, localized, and action- or content-oriented.
 - If a fix may change layout, gestures, navigation, state, or public component API, classify it as `VISUAL-IMPACT` or `FUNCTIONAL-RISK`.

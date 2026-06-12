@@ -67,11 +67,11 @@ This catalog contains anonymized, reusable accessibility patterns only. Do not a
 - WCAG / Platform: WCAG 1.4.4 Resize Text, Dynamic Type
 - Severity default: Serious
 - Fix type default: RUNTIME-CHECK by default; VISUAL-IMPACT when layout changes are required.
-- Bad shape: Text or controls use fixed heights, clipped containers, absolute frames, one-line assumptions, or custom fonts that may not scale at accessibility text sizes.
-- Detection hints: SwiftUI `.frame(height:)`, `.lineLimit(1)`, clipped overlays; UIKit fixed constraints, custom font sizes without text styles, labels with insufficient lines.
-- Correct fix: Use scalable text styles, flexible layout, multiline support, minimum scale only when appropriate, and test at large accessibility sizes.
-- Verification: Runtime check with large accessibility Dynamic Type sizes confirms text, controls, and focus outlines remain usable without clipping or overlap.
-- False positives / exceptions: Do not flag fixed-size decorative text that is not user-facing or accessibility-relevant.
+- Bad shape: Text or controls use fixed heights, clipped containers, absolute/manual positioning, one-line assumptions, truncation, dense horizontal layouts, or custom fonts that may not scale at accessibility text sizes.
+- Detection hints: SwiftUI `.frame(height:)`, `.frame(width:)`, `.lineLimit(1)`, `.truncationMode(...)`, `.clipped()`, `.clipShape(...)`, `.overlay`, `ZStack`, `.offset`, `.position`, `.minimumScaleFactor(...)`, fixed-height rows/cards/toolbars, dense `HStack` text/icon/button combinations, `.font(.system(size:))`, and `.font(.custom(...))` without a scalable text-style strategy. UIKit `UILabel.numberOfLines = 1`, `lineBreakMode = .byTruncatingTail`/`.byClipping`, `heightAnchor.constraint(equalToConstant:)`, fixed cell/header/footer heights, manual `CGRect`/`frame` layout, `adjustsFontForContentSizeCategory = false`, custom fonts without `UIFontMetrics`, constraints that prevent label growth, reused cells with fixed sizing, and storyboard/xib fixed-height single-line labels.
+- Correct fix: Use scalable text styles, `UIFontMetrics` or equivalent design-system scaling, flexible layout, multiline support, vertical fallback for dense rows, enough compression resistance/hugging behavior, and minimum scale only as a last resort for nonessential text.
+- Verification: Runtime check with large accessibility Dynamic Type sizes confirms text, controls, row/card contents, and focus outlines remain usable without clipping or overlap.
+- False positives / exceptions: Do not flag fixed-size decorative text that is not user-facing or accessibility-relevant. Do not state that overlap is confirmed unless a runtime screenshot, simulator/device check, or rendered output proves it.
 
 ### PATTERN-IOS-005: List or collection cell has unclear VoiceOver summary
 - Platform: iOS
