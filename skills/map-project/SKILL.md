@@ -21,6 +21,17 @@ Create an evidence-based project map for a React/Next.js, ASP.NET/ASPX, or iOS S
 5. Create `Binclusive-auditing/` in the project root if missing.
 6. Write one map file named `<project-name>_<YYYY-MM-DD>_project-map.md` inside `Binclusive-auditing/`.
 
+## CI / Diff Mode
+
+Triggered by a `--diff` or `--ci` argument or the `BINCLUSIVE_CI` environment variable. Used in CI/CD to keep a committed baseline map current without a full re-map, non-interactively.
+
+1. Run `node <audit-skill-dir>/scripts/git-diff-scope.mjs <project-root>` (the diff helper ships with `audit-accessibility`) to get `changedFiles` and the existing `baselineMap` path.
+2. **Ask no scope questions.** Scope = the changed files only.
+3. If a baseline map exists, map the changed files and merge their entries (paths, type, native element/control, usages) into it in place; preserve unrelated sections. If none exists, this step is optional — `audit-accessibility` can run diff-only without a committed map.
+4. Do not re-scan or re-map the whole project in this mode. Record in the map which entries were refreshed from the diff and the base ref used.
+
+This step is optional for CI: it only improves cross-file usage context for the audit. The audit can run without it (diff-only mode).
+
 ## Source Of Truth
 
 Read the platform-specific mapping reference after scope is clear:

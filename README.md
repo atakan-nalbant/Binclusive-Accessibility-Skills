@@ -97,6 +97,24 @@ After installing the adapter into a project, ask Copilot to follow the Binclusiv
 2. Audit the mapped scope.
 3. Fix only selected audit tasks.
 
+## CI/CD Accessibility Gate
+
+The audit skill has a non-interactive **diff mode** for pull-request checks: it inspects git history first and audits only what the change touched, then fails the build on serious findings. No source code is modified in CI.
+
+```
+git-diff-scope.mjs   ->  audit (diff mode)   ->  gate.mjs
+   changed files          write TODO for the      exit non-zero on open
+   + line ranges          changed scope only       Critical/Serious findings
+```
+
+- **Scope** — `node skills/audit-accessibility/scripts/git-diff-scope.mjs .` returns the auditable files changed between the base ref and HEAD, with per-file changed line ranges, and points at any committed baseline map. Default scope is committed history (`base...HEAD`); add `--include-working` for local pre-commit runs that include uncommitted/untracked edits.
+- **Audit** — run the audit skill in diff mode (`/auditaccessibility --diff`, or set `BINCLUSIVE_CI=1`); it scopes to the changed targets and writes `Binclusive-auditing/accessibility-todo.md`.
+- **Gate** — `node skills/audit-accessibility/scripts/gate.mjs Binclusive-auditing/accessibility-todo.md --max-severity=serious` exits non-zero when any open finding is at/above the threshold, which fails the PR check.
+
+Key settings: `BINCLUSIVE_BASE_REF` (diff base, defaults to `GITHUB_BASE_REF` then `origin/main`), `BINCLUSIVE_CI` (forces non-interactive mode), and `--max-severity` (`critical|serious|moderate|minor`). The `fix-accessibility` skill is intentionally **not** part of the gate — remediation stays a human-reviewed step.
+
+See [`skills/audit-accessibility/references/ci-cd.md`](skills/audit-accessibility/references/ci-cd.md) for the full pipeline, a ready-to-use GitHub Actions workflow, and the committed-vs-working-tree scope rules.
+
 ## Workflow Rules
 
 - Map and audit skills observe and document only; they do not edit source code.

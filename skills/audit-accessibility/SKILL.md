@@ -29,6 +29,22 @@ Audit a previously mapped React/Next.js, ASP.NET/ASPX, or iOS SwiftUI/UIKit scop
 7. Audit only the scope listed in the map, unless the user explicitly expands scope.
 8. Write `Binclusive-auditing/accessibility-todo.md` and also archive a dated copy: `accessibility-todo_<YYYY-MM-DD>.md`.
 
+## CI / Diff Mode
+
+Use this mode for CI/CD pull-request checks. It is triggered by a `--diff` or `--ci` argument, or when the `BINCLUSIVE_CI` environment variable is set. In this mode the audit is **non-interactive, diff-scoped, and gated** — it asks no questions and audits only what the change touched.
+
+1. **Compute the change scope.** Run `node <skill-dir>/scripts/git-diff-scope.mjs <project-root>`. It returns `changedFiles` (auditable source files changed between the base ref and HEAD), `changedLineRanges` per file, `mode`, and `baselineMap`. The base ref comes from `BINCLUSIVE_BASE_REF`, else `GITHUB_BASE_REF`, else `origin/main`. By default the scope is **committed history only** (`base...HEAD`); pass `--include-working` (or `BINCLUSIVE_INCLUDE_WORKING=1`) to also audit uncommitted/untracked local edits for pre-commit runs. A file with `status: "U"` (untracked) or empty `changedLineRanges` is audited whole. Always read the `notes` — if it reports uncommitted files excluded, surface that rather than reporting an empty audit as "all clear."
+2. **If `changedFiles` is empty,** write no findings, state "no auditable changes in this diff," and stop. CI passes.
+3. **Resolve usage context (both models supported):**
+   - If `baselineMap` is set, read it and pull the known usages of each changed shared component into scope (a changed `Button` audits its consumer pages too).
+   - If `baselineMap` is null (diff-only), search for importers/consumers of each changed file to recover usage context. Record this as a coverage limitation.
+4. **Audit only the changed targets,** and prioritize the `changedLineRanges` — do not raise findings on unchanged lines of a touched file unless the change made them newly reachable. Apply the normal Audit Order and reference rules to that narrowed scope.
+5. **Never ask scope questions, never expand beyond the diff,** and never fall back to a whole-project audit in this mode.
+6. **Write the report as usual** (`accessibility-todo.md` + dated copy), with `Scope audited: diff vs <base ref>` and the changed file list in the header.
+7. **Do not edit source code.** CI mode is audit-and-gate only; remediation is a separate human-reviewed step.
+
+The build pass/fail is decided by the gate, run after this skill: `node <skill-dir>/scripts/gate.mjs Binclusive-auditing/accessibility-todo.md --max-severity=serious` exits non-zero when any open finding is at or above the threshold. See `references/ci-cd.md` for the full pipeline wiring.
+
 ## Required Output
 
 Use the TODO format in `references/accessibility-todo-format.md`. Every finding must include:

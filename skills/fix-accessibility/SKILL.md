@@ -22,6 +22,10 @@ Resolve selected tasks from `Binclusive-auditing/accessibility-todo.md` through 
 6. Apply fixes incrementally. Re-check the relevant file/scope after each task when feasible.
 7. Write or append `Binclusive-auditing/after-test.md`; also archive `after-test_<YYYY-MM-DD>.md` when a batch completes.
 
+## CI / Diff Mode
+
+This skill is **not** part of the CI/CD gate. CI runs map + audit on the diff and fails the build on open findings (see `audit-accessibility` CI / Diff Mode and `references/ci-cd.md`); it never mutates the branch. Remediation with this skill remains a human-reviewed step run locally or in a follow-up PR, where the developer selects which TASK IDs to fix. Do not wire this skill into a blocking CI check or auto-apply fixes on pull requests.
+
 ## Fix Policy
 
 - `SAFE`: may apply after summarizing the intended change.
