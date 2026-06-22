@@ -8,7 +8,7 @@ param(
 $ErrorActionPreference = "Stop"
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $Root = Split-Path -Parent $ScriptDir
-$SkillNames = @("map-project", "audit-accessibility", "fix-accessibility")
+$SkillNames = @("map-project", "audit-accessibility", "shopify-theme-audit", "fix-accessibility")
 
 function Copy-SkillSet {
   param(

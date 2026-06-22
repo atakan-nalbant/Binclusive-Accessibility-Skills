@@ -35,7 +35,7 @@ esac
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-SKILLS=(map-project audit-accessibility fix-accessibility)
+SKILLS=(map-project audit-accessibility shopify-theme-audit fix-accessibility)
 
 copy_skill_set() {
   local destination_root="$1"

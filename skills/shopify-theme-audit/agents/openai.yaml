@@ -1,0 +1,4 @@
+interface:
+  display_name: "Shopify Theme Audit"
+  short_description: "Shopify tema accessibility audit"
+  default_prompt: "Use $shopify-theme-audit to audit a Shopify theme and produce a Binclusive accessibility TODO report."

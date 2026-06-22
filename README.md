@@ -1,6 +1,6 @@
 # Binclusive Accessibility Skills
 
-Reusable Agent Skills for mapping, auditing, and fixing accessibility issues in React, Next.js, React Native, Expo, ASP.NET, ASPX/Web Forms, SwiftUI, and UIKit projects.
+Reusable Agent Skills for mapping, auditing, and fixing accessibility issues in React, Next.js, React Native, Expo, ASP.NET, ASPX/Web Forms, Shopify themes, SwiftUI, and UIKit projects.
 
 This repository keeps one canonical skill source and uses small adapters for Codex, Claude Code, and GitHub Copilot.
 
@@ -14,6 +14,7 @@ Codebase auditing is only one part of a complete accessibility process. Accessib
 ## Skills
 - `map-project`: inventory routes, screens, views, shared UI, dependencies, localization, and inline UI before an accessibility audit.
 - `audit-accessibility`: audit a mapped scope and write `Binclusive-auditing/accessibility-todo.md` without editing source code.
+- `shopify-theme-audit`: audit Shopify theme Liquid, JSON templates, sections, snippets, assets, config, and locales without editing source code.
 - `fix-accessibility`: remediate selected TODO tasks with severity/risk controls and verification notes.
 
 Canonical skill files live in `skills/<skill-name>/SKILL.md`.
@@ -21,6 +22,7 @@ Canonical skill files live in `skills/<skill-name>/SKILL.md`.
 ## Supported Audit Targets
 
 - React and Next.js web applications.
+- Shopify Online Store themes, including Dawn-derived and custom Liquid/JSON theme structures.
 - React Native and Expo mobile applications.
 - ASP.NET MVC/Razor, Razor Pages, and ASPX/Web Forms applications.
 - iOS apps built with SwiftUI, UIKit, or mixed SwiftUI/UIKit architecture.
@@ -77,6 +79,7 @@ Invoke skills explicitly with:
 ```text
 $map-project
 $audit-accessibility
+$shopify-theme-audit
 $fix-accessibility
 ```
 
@@ -87,6 +90,7 @@ Invoke skills explicitly with:
 ```text
 /map-project
 /audit-accessibility
+/shopify-theme-audit
 /fix-accessibility
 ```
 
