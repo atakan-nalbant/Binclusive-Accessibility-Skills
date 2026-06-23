@@ -1,11 +1,11 @@
 ---
 name: audit-accessibility
-description: Audit React, Next.js, React Native, Expo, ASP.NET, ASPX/Web Forms, SwiftUI, or UIKit accessibility from a prior Binclusive project map. Use when the user says /auditaccessibility, audit accessibility, run accessibility audit, accessibility test, iOS accessibility audit, SwiftUI accessibility audit, UIKit accessibility audit, React Native accessibility audit, Expo accessibility audit, "binclusive projemi test et", "erişilebilirlik testi yap", "erişilebilirlik todo çıkar", "accessibility todo çıkar", or wants an accessibility TODO report from mapped routes, views, screens, components, controls, or paths.
+description: Audit React, Next.js, React Native, Expo, ASP.NET, ASPX/Web Forms, SwiftUI, UIKit, or Python accessibility from a prior Binclusive project map. Use when the user says /auditaccessibility, audit accessibility, run accessibility audit, accessibility test, iOS accessibility audit, SwiftUI accessibility audit, UIKit accessibility audit, React Native accessibility audit, Expo accessibility audit, Python accessibility audit, Django accessibility audit, "binclusive projemi test et", "erişilebilirlik testi yap", "erişilebilirlik todo çıkar", "accessibility todo çıkar", or wants an accessibility TODO report from mapped routes, views, screens, components, controls, or paths.
 ---
 
 # Audit Accessibility
 
-Audit a previously mapped React/Next.js web, React Native/Expo, ASP.NET/ASPX, or iOS SwiftUI/UIKit scope and write an actionable accessibility TODO report. This skill observes and documents only. It never edits source code.
+Audit a previously mapped React/Next.js web, React Native/Expo, ASP.NET/ASPX, iOS SwiftUI/UIKit, or Python (desktop GUI, CLI/TUI, web backend, or docs) scope and write an actionable accessibility TODO report. This skill observes and documents only. It never edits source code.
 
 ## Start Here
 
@@ -28,6 +28,9 @@ Audit a previously mapped React/Next.js web, React Native/Expo, ASP.NET/ASPX, or
    - For iOS SwiftUI/UIKit, read:
      - `references/ios-swift.md`
      - `references/patterns/ios-swift-patterns.md` when available
+   - For Python, read:
+     - `references/python.md` (classify the surface first: desktop GUI, CLI/TUI, web backend, generated docs, or pure library)
+     - `references/auditor-web-a11y.md` as well when the Python app renders HTML (Django/Flask/Jinja templates)
 6. For mixed-platform maps, keep findings grouped by platform/surface and do not apply web-only rules to native/mobile UI or mobile-only rules to web UI.
 7. Audit only the scope listed in the map, unless the user explicitly expands scope.
 8. Write `Binclusive-auditing/accessibility-todo.md` and also archive a dated copy: `accessibility-todo_<YYYY-MM-DD>.md`.
