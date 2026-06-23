@@ -20,7 +20,7 @@ Use this reference only for ASP.NET MVC/Razor, Razor Pages, or ASPX/Web Forms pr
 - third-party grids, menus, tabs, date pickers, dialogs, or combo boxes with runtime-only keyboard/focus behavior.
 - master/layout pages missing `<html lang>`, `dir`, skip link, landmarks, page title, or stable main content.
 - table-based layout exposed as data tables, or real data tables/data grids missing `<caption>`, `<th>`, `scope`, `headers`, or equivalent rendered header associations.
-- generated client IDs referenced incorrectly by scripts or ARIA relationships.
+- generated client IDs referenced incorrectly by scripts or ARIA relationships: a `for`, `aria-labelledby`, `aria-describedby`, or `headers` reference pointing at an `asp:` id that ASP.NET rewrites under a naming container, or a partial/template rendered more than once emitting duplicate ids. Prefer `ClientID`-aware references, or `ClientIDMode="Static"` only where the id is guaranteed unique; the final resolution is render-time, so confirm it as a `RUNTIME-CHECK`.
 
 ## Web Forms Checks
 
