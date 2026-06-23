@@ -43,6 +43,7 @@ Read a selected `Binclusive-auditing/*_project-map.md` first. It is the source o
 - Disclosure/menu/combobox patterns missing `aria-expanded`, `aria-controls`, or APG keyboard behavior.
 - Tabs missing tablist/tab/tabpanel semantics and arrow-key behavior.
 - Accordions missing button semantics, expanded state, or heading structure.
+- Menu roles (`role="menu"` / `role="menuitem"`) applied to plain site navigation. A simple list of links is a `<nav>`, not a menu — reserve menu/menubar semantics for true application menus, otherwise screen-reader users get unexpected menu keyboard semantics on ordinary navigation.
 
 ### Images, SVG, Media, Charts
 
