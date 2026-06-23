@@ -46,6 +46,8 @@ Audit only the mapped iOS screens, flows, components, storyboards/xibs, and plat
 - Screen lacks a clear navigation title or first meaningful heading.
 - Custom back/close controls lack accessible names or expected activation behavior.
 - Sheet, alert, confirmation dialog, popover, or custom modal lacks focus/announcement strategy after presentation or dismissal.
+- For a custom sheet, popover, or overlay specifically, name the modal strategy: move VoiceOver focus into the modal on open (`AccessibilityFocusState` in SwiftUI), mark the container so the background is unreachable (`accessibilityViewIsModal` in UIKit), and return focus to the trigger on dismiss. Native `Alert` and `confirmationDialog` already manage focus — do not flag them.
+- Source order that does not match the intended reading order without `.accessibilitySortPriority` (SwiftUI) or an explicit `accessibilityElements` ordering (UIKit). The rendered order is runtime-only, but a clearly mis-ordered source is a static finding.
 - Async loading, success, failure, validation, or toast/banner updates lack an announcement strategy.
 - Programmatic navigation or content replacement leaves VoiceOver focus in stale or confusing context.
 - Lists, grids, and collection-like layouts have unclear row/card labels, missing actions, or poor reading order.
