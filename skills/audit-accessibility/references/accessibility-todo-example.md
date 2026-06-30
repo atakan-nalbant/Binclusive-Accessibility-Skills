@@ -6,6 +6,7 @@
 - **Framework:** Next.js / React
 - **Map file used:** `example-web-app_2026-06-09_project-map.md`
 - **Scope:** synthetic example components only
+- **Read-coverage ledger:** fully-read 3 / 3 · partially-read 0 · unread 0 (no in-scope file exceeded a single read window; nothing left unread)
 
 ## Summary
 

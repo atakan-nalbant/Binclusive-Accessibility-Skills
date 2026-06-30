@@ -10,6 +10,7 @@ The active audit output is `Binclusive-auditing/accessibility-todo.md`.
 - Framework/platform and language
 - Map file used
 - Scope audited
+- Read-coverage ledger (in-scope files fully-read / partially-read / unread, plus the explicit list of any partially-read or unread files — see the "Coverage" section of `SKILL.md`)
 - Static-only vs runtime-assisted note
 
 ## Summary
