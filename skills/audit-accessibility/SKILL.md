@@ -46,6 +46,34 @@ Audit a previously mapped React/Next.js web, Angular web, React Native/Expo, ASP
 8. Audit only the scope listed in the map or the resolved narrowed focus scope, unless the user explicitly expands scope.
 9. Write `Binclusive-auditing/accessibility-todo.md` and also archive a dated copy: `accessibility-todo_<YYYY-MM-DD>.md`.
 
+## Coverage — read every in-scope file end to end
+
+The audit's second silent-skip failure mode is *within* a file: a large source file is
+read once through the default window (~1500–2000 lines) and everything past it goes
+un-audited, while the report still presents the file as covered. An un-read region is an
+unaudited region — treat it as a finding-bearing surface you have not yet looked at, not
+as clean.
+
+1. **Read each in-scope file to EOF.** For every file in the focus scope, read the whole
+   file — not just the first window. When a file is larger than a single read, read it in
+   **paged offset chunks** (continue from where the previous read stopped) until you reach
+   the end. Never audit a file you have only partially read and never infer the unread
+   remainder from the part you saw.
+2. **Keep a read-coverage ledger.** Track each in-scope file as **fully-read /
+   partially-read / unread**, mirroring the map's coverage ledger. Reconcile it against
+   the scope the map handed you before writing the report: every file in scope should be
+   fully-read, or else appear as an explicit gap.
+3. **Carry every gap into the report.** Any file or region you could not read in full —
+   plus any blind spot the map already flagged — is surfaced in the audit summary as a
+   named coverage gap, so "no findings here" is never confused with "not looked at here."
+
+This applies to **every** run. CI/Diff Mode already narrows to changed line ranges; the
+full-scope audit over a large mapped codebase is where the in-file skip bites.
+
+See `references/read-coverage-ledger-example.md` for a real read-coverage ledger from a
+101-file iOS run, including how a file larger than one read window is reported as
+`Partially read` until it is paged through to EOF.
+
 ## Focus Scope
 
 The map sets the outer boundary; within it the audit can run over everything mapped or narrow to one target.
@@ -83,6 +111,11 @@ Use the TODO format in `references/accessibility-todo-format.md`. Every finding 
 - exact code snippet or enough verified code/storyboard/xib context
 - problem, WCAG/APG/platform impact, correct solution, verification steps
 - status: `TODO`
+
+The report header must also carry a **read-coverage ledger**: count of in-scope files
+fully-read vs partially-read vs unread, and the explicit list of any partially-read or
+unread files (see "Coverage"). A report with no coverage ledger reads as "everything was
+audited" — which is the exact false-complete signal this guards against.
 
 ## Audit Order
 
@@ -143,3 +176,4 @@ For Flutter (Dart, Material/Cupertino/Widgets) scopes:
 - Prefer native HTML fixes for web (including Angular: native elements and `[attr.aria-*]` bindings, with Angular CDK a11y primitives — `cdkTrapFocus`, `cdkAriaLive`, `LiveAnnouncer` — and Angular Material before hand-rolled widgets), React Native primitives/accessibility props for React Native, native SwiftUI/UIKit controls/APIs for iOS, native Compose/Material semantics or Android View accessibility APIs (`contentDescription`, `Modifier.semantics`, `labelFor`, `AccessibilityDelegate`) for native Android, and native Material/Cupertino widgets or Flutter semantics (`Semantics`, `semanticLabel`, `MergeSemantics`/`ExcludeSemantics`, `tooltip`) for Flutter.
 - Do not claim compliance; report verified findings and residual risk only.
 - If the map has blind spots, carry them into the audit summary.
+- Never present a partially-read file as audited. Read every in-scope file to EOF (large files in paged offset chunks), and record any file or region left unread as an explicit coverage gap in the report (see "Coverage").

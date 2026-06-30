@@ -32,6 +32,37 @@ Triggered by a `--diff` or `--ci` argument or the `BINCLUSIVE_CI` environment va
 
 This step is optional for CI: it only improves cross-file usage context for the audit. The audit can run without it (diff-only mode).
 
+## Coverage — enumerate every in-scope file, never sample silently
+
+On large codebases the failure mode is silent under-coverage: the map omits files that
+were never enumerated, and because the omission is invisible, a downstream audit treats
+an un-mapped file as a clean one. Guard against it with an explicit, reconciled ledger.
+
+1. **Enumerate the full in-scope file set up front.** Before mapping, list every source
+   file the agreed scope covers — don't discover files ad hoc while writing entries. The
+   inspector (`scripts/inspect-project.mjs`) already walks the tree and reports per-type
+   **counts** (`swiftFileCount`, `kotlinFileCount`, `dartFileCount`, `componentFileCount`,
+   etc.); use those counts as the coverage **denominator**. When the inspector is
+   unavailable or you need the actual paths, enumerate them directly, e.g.
+   `find <scope> \( -name '*.swift' -o -name '*.kt' -o -name '*.dart' -o -name '*.tsx' \) -not -path '*/node_modules/*'`
+   for the extensions that match the detected platform.
+2. **Reconcile mapped-vs-total and record the ledger.** Keep a running tally of files
+   **mapped / partially-mapped / not-yet-mapped** and reconcile it against the enumerated
+   total before writing the map. If the numbers don't match, the difference is an
+   un-mapped set you must either map or list explicitly — never let it vanish.
+3. **Surface every gap explicitly.** Any in-scope file left un-mapped (size, time,
+   ambiguity, or a deliberate scope cut) goes in the map's coverage notes as a named
+   gap with a count, so the audit inherits an honest boundary instead of a false-complete
+   map. "Mapped 180 of 1203 in-scope files; remaining 1023 not yet mapped (listed below)"
+   is correct; silently mapping 180 and presenting the map as whole is the bug.
+
+This is a hard requirement on **every** run, not just CI/Diff Mode — the diff path already
+scopes itself, but a full map over a huge tree is exactly where the silent skip happens.
+
+See `references/coverage-ledger-example.md` for a real ledger from a 101-file iOS run
+(`101 / 101` reconciled against an enumerated denominator, with the genuine out-of-scope
+boundary named) — what an honest map coverage section looks like in practice.
+
 ## Source Of Truth
 
 Read the platform-specific mapping reference after scope is clear:
@@ -63,6 +94,7 @@ The map file must state:
 - inline UI inventory per page/view/screen
 - hardcoded string and localization hotspots
 - platform feature notes such as Dynamic Type/font scaling, VoiceOver/TalkBack, Switch Control, Voice Control, reduced motion, contrast, touch targets, and generated/native UI when relevant
+- a **coverage ledger**: total in-scope files enumerated, count mapped, count partially-mapped, and the explicit list (or count + pattern) of any in-scope files left un-mapped — reconciled per the "Coverage" section
 - coverage notes, blind spots, and runtime-verification needs
 - instructions for `audit-accessibility`
 
@@ -74,4 +106,4 @@ The map file must state:
 - Do not invent files, routes, screens, components, controls, or line numbers.
 - If framework/platform/routing/navigation is ambiguous, ask instead of guessing.
 - If a target cannot be verified statically, mark it `needs runtime verification`.
-- If the project is huge, map the agreed scope first and record what was excluded.
+- If the project is huge, never silently sample a subset and present it as the whole map. Enumerate the full in-scope file set, map what you can, and record every un-mapped file as an explicit coverage gap with a count (see "Coverage"). An honest "mapped X of Y, Z remaining" beats a map that looks complete but isn't.
