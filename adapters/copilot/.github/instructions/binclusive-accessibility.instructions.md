@@ -13,6 +13,8 @@ Follow the workflow in order unless the user explicitly narrows the task:
 2. Audit second: create `Binclusive-auditing/accessibility-todo.md` from the selected map or Shopify theme source.
 3. Fix last: remediate only user-selected task IDs, SAFE tasks, severities, components, pages, screens, controls, or paths.
 
+Shard Mode (large-map audit fan-out) is portable: when the audit map is large and this Copilot runtime can dispatch parallel sub-tasks/agents, fan the audit out one worker per shard per `skills/audit-accessibility/SKILL.md` ("Harness capability" / "Fan-out procedure"), then merge deterministically. When no parallel-subtask primitive is available, run single-agent — the read-coverage ledger keeps either path honest, so the fallback costs throughput, not coverage.
+
 Respect the fix policy from `skills/fix-accessibility/SKILL.md`:
 
 - `SAFE` tasks may be applied after summarizing the intended change.
