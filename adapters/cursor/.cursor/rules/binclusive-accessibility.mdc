@@ -1,0 +1,29 @@
+---
+description: Binclusive accessibility workflow — map, audit, and fix accessibility issues using the canonical Agent Skills as the source of truth.
+alwaysApply: true
+---
+
+# Binclusive Accessibility Workflow
+
+Use the canonical Agent Skills in this repository as the source of truth:
+
+- `skills/map-project/SKILL.md` inventories React/Next.js, Angular, React Native/Expo, ASP.NET/ASPX, iOS SwiftUI/UIKit, native Android (Jetpack Compose / Android Views/XML), or Flutter (Dart, Material/Cupertino) routes, screens, views, pages, controls, dependencies, localization, and inline UI for accessibility review.
+- `skills/audit-accessibility/SKILL.md` audits only the mapped scope and writes actionable accessibility TODOs.
+- `skills/shopify-theme-audit/SKILL.md` audits Shopify theme Liquid, JSON templates, sections, snippets, assets, config, and locales without requiring a prior map.
+- `skills/fix-accessibility/SKILL.md` fixes selected TODO tasks with severity/risk controls and verification notes.
+
+Follow the workflow in order unless the user explicitly narrows the task:
+
+1. Map first for app projects: create or reuse `Binclusive-auditing/*_project-map.md`. For Shopify themes, use `shopify-theme-audit` directly.
+2. Audit second: create `Binclusive-auditing/accessibility-todo.md` from the selected map or Shopify theme source.
+3. Fix last: remediate only user-selected task IDs, SAFE tasks, severities, components, pages, screens, controls, or paths.
+
+Shard Mode (large-map audit fan-out) is portable: when the audit map is large and this Cursor runtime can dispatch parallel sub-tasks/agents (background / parallel agents), fan the audit out one worker per shard per `skills/audit-accessibility/SKILL.md` ("Harness capability" / "Fan-out procedure"), then merge deterministically. When no parallel-subtask primitive is available, run single-agent — the read-coverage ledger keeps either path honest, so the fallback costs throughput, not coverage.
+
+Respect the fix policy from `skills/fix-accessibility/SKILL.md`:
+
+- `SAFE` tasks may be applied after summarizing the intended change.
+- `VISUAL-IMPACT` and `FUNCTIONAL-RISK` tasks require explicit user approval before editing.
+- `RUNTIME-CHECK` tasks need runtime verification steps and must not be marked solved by static code alone.
+
+Prefer semantic HTML before ARIA for web and Shopify Liquid themes (for Angular, bind ARIA with `[attr.aria-*]`/`[attr.role]` and prefer Angular CDK a11y — `cdkTrapFocus`, `cdkAriaLive`, `LiveAnnouncer` — and Angular Material over hand-rolled widgets), React Native primitives and accessibility props for React Native, native SwiftUI/UIKit controls and platform accessibility APIs for iOS, native Compose/Material semantics or Android View accessibility APIs (`contentDescription`, `Modifier.semantics`, `labelFor`, `importantForAccessibility`) for native Android, and native Material/Cupertino widgets or Flutter semantics (`Semantics`, `semanticLabel`, `MergeSemantics`/`ExcludeSemantics`, `tooltip`) for Flutter. Preserve existing styling/API/navigation contracts unless approved, and never claim full compliance. Report verified findings, changed files, checks run, and residual risk.

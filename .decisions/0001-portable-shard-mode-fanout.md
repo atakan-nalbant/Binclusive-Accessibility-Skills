@@ -76,6 +76,12 @@ would have ratified.
 - **README (#20).** The Shard Mode section, once it lands, must describe fan-out as
   capability-detected and portable — not Claude-Code-only. Called out on #21 so #20 matches
   this ADR.
+- **Cursor adapter shipped (#25).** The Cursor entry above was prose-only when this ADR
+  landed — named as a target runtime with no adapter surface in the repo. Issue #25 settled
+  that gap as **Option A (build the adapter)**: `adapters/cursor/.cursor/rules/binclusive-accessibility.mdc`
+  (installed by the `cursor` target in `scripts/install.sh` / `install.ps1`) now backs the
+  Cursor claim, so every harness this ADR names is carried by a real adapter that loads the
+  canonical `SKILL.md`.
 - **When to revisit.** If a targeted harness's parallel-subtask primitive proves
   unreliable enough that fan-out there degrades correctness rather than just throughput,
   narrow the capability gate for that harness (fall back to single-agent) and record it as

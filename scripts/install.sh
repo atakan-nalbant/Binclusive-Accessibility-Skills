@@ -15,7 +15,7 @@ while [[ $# -gt 0 ]]; do
       shift 2
       ;;
     -h|--help)
-      echo "Usage: scripts/install.sh [--target all|codex|claude|copilot] [--repo /path/to/project]"
+      echo "Usage: scripts/install.sh [--target all|codex|claude|copilot|cursor] [--repo /path/to/project]"
       exit 0
       ;;
     *)
@@ -26,7 +26,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 case "$TARGET" in
-  all|codex|claude|copilot) ;;
+  all|codex|claude|copilot|cursor) ;;
   *)
     echo "Invalid target: $TARGET" >&2
     exit 1
@@ -95,6 +95,21 @@ PY
   echo "Installed Copilot adapter -> $github_dir"
 }
 
+install_cursor_adapter() {
+  if [[ -z "$REPO" ]]; then
+    echo "Cursor adapter templates are available in adapters/cursor/. Pass --repo /path/to/project to install them into a project."
+    return
+  fi
+
+  local repo_path
+  repo_path="$(cd "$REPO" && pwd)"
+  local rules_dir="$repo_path/.cursor/rules"
+  mkdir -p "$rules_dir"
+
+  cp "$ROOT/adapters/cursor/.cursor/rules/binclusive-accessibility.mdc" "$rules_dir/binclusive-accessibility.mdc"
+  echo "Installed Cursor adapter -> $rules_dir"
+}
+
 if [[ "$TARGET" == "all" || "$TARGET" == "codex" ]]; then
   copy_skill_set "$HOME/.agents/skills"
 fi
@@ -105,4 +120,8 @@ fi
 
 if [[ "$TARGET" == "all" || "$TARGET" == "copilot" ]]; then
   install_copilot_adapter
+fi
+
+if [[ "$TARGET" == "all" || "$TARGET" == "cursor" ]]; then
+  install_cursor_adapter
 fi

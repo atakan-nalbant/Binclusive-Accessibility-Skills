@@ -2,7 +2,7 @@
 
 Reusable Agent Skills for mapping, auditing, and fixing accessibility issues in React, Next.js, Angular, React Native, Expo, ASP.NET, ASPX/Web Forms, Shopify themes, SwiftUI, UIKit, native Android (Kotlin/Java, Jetpack Compose, Android Views/XML), and Flutter (Dart, Material/Cupertino) projects.
 
-This repository keeps one canonical skill source and uses small adapters for Codex, Claude Code, and GitHub Copilot.
+This repository keeps one canonical skill source and uses small adapters for Codex, Claude Code, GitHub Copilot, and Cursor.
 
 
 ## About Binclusive
@@ -54,7 +54,8 @@ Targets:
 - `codex`: copies skills to `$HOME/.agents/skills`.
 - `claude`: copies skills to `$HOME/.claude/skills`.
 - `copilot`: installs Copilot instruction templates into a target project when `--repo` / `-Repo` is provided.
-- `all`: installs Codex and Claude skills, and prints Copilot template guidance unless a repo is provided.
+- `cursor`: installs the Cursor project-rules file into a target project when `--repo` / `-Repo` is provided.
+- `all`: installs Codex and Claude skills, and prints Copilot and Cursor template guidance unless a repo is provided.
 
 ## GitHub Copilot Adapter
 
@@ -74,6 +75,24 @@ This writes or updates:
 - `.github/instructions/binclusive-accessibility.instructions.md`
 
 The installer wraps the main Copilot block with markers so future installs update the same section instead of duplicating it.
+
+## Cursor Adapter
+
+Install the Cursor project rules into a target project:
+
+```powershell
+scripts/install.ps1 -Target cursor -Repo C:\path\to\project
+```
+
+```bash
+scripts/install.sh --target cursor --repo /path/to/project
+```
+
+This writes or updates:
+
+- `.cursor/rules/binclusive-accessibility.mdc`
+
+The rules file is `alwaysApply: true`, so Cursor loads the Binclusive accessibility workflow as project rules that point back to the canonical `skills/<skill-name>/SKILL.md` sources. Shard Mode fan-out is capability-detected: when the Cursor runtime can dispatch parallel sub-tasks/agents the audit fans out one worker per shard, otherwise it runs single-agent — the read-coverage ledger keeps either path honest.
 
 ## Usage
 
@@ -166,6 +185,7 @@ adapters/
   codex/
   claude-code/
   copilot/
+  cursor/
 scripts/
   install.ps1
   install.sh

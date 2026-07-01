@@ -1,5 +1,5 @@
 param(
-  [ValidateSet("all", "codex", "claude", "copilot")]
+  [ValidateSet("all", "codex", "claude", "copilot", "cursor")]
   [string]$Target = "all",
 
   [string]$Repo
@@ -66,6 +66,22 @@ function Install-CopilotAdapter {
   Write-Host "Installed Copilot adapter -> $GithubDir"
 }
 
+function Install-CursorAdapter {
+  param([string]$TargetRepo)
+
+  if ([string]::IsNullOrWhiteSpace($TargetRepo)) {
+    Write-Host "Cursor adapter templates are available in adapters/cursor/. Pass -Repo <path> to install them into a project."
+    return
+  }
+
+  $ResolvedRepo = (Resolve-Path -LiteralPath $TargetRepo).Path
+  $RulesDir = Join-Path $ResolvedRepo ".cursor\rules"
+  New-Item -ItemType Directory -Force -Path $RulesDir | Out-Null
+
+  Copy-Item -LiteralPath (Join-Path $Root "adapters\cursor\.cursor\rules\binclusive-accessibility.mdc") -Destination (Join-Path $RulesDir "binclusive-accessibility.mdc") -Force
+  Write-Host "Installed Cursor adapter -> $RulesDir"
+}
+
 if ($Target -eq "all" -or $Target -eq "codex") {
   Copy-SkillSet -DestinationRoot (Join-Path $HOME ".agents\skills")
 }
@@ -76,4 +92,8 @@ if ($Target -eq "all" -or $Target -eq "claude") {
 
 if ($Target -eq "all" -or $Target -eq "copilot") {
   Install-CopilotAdapter -TargetRepo $Repo
+}
+
+if ($Target -eq "all" -or $Target -eq "cursor") {
+  Install-CursorAdapter -TargetRepo $Repo
 }
