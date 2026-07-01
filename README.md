@@ -92,7 +92,7 @@ This writes or updates:
 
 - `.cursor/rules/binclusive-accessibility.mdc`
 
-The rules file is `alwaysApply: true`, so Cursor loads the Binclusive accessibility workflow as project rules that point back to the canonical `skills/<skill-name>/SKILL.md` sources. Shard Mode fan-out is capability-detected: when the Cursor runtime can dispatch parallel sub-tasks/agents the audit fans out one worker per shard, otherwise it runs single-agent — the read-coverage ledger keeps either path honest.
+The rules file is `alwaysApply: true`, so Cursor loads the Binclusive accessibility workflow as project rules that point back to the canonical `skills/<skill-name>/SKILL.md` sources. Shard Mode fan-out is capability-detected: when the Cursor runtime can dispatch parallel sub-tasks/agents the map and audit fan out one worker per shard, otherwise they run single-agent — the coverage ledger keeps either path honest.
 
 ## Usage
 
@@ -126,27 +126,27 @@ After installing the adapter into a project, ask Copilot to follow the Binclusiv
 2. Audit the mapped scope.
 3. Fix only selected audit tasks.
 
-## Audit Reliability: Coverage & Shard Mode
+## Map & Audit Reliability: Coverage & Shard Mode
 
-The `audit-accessibility` skill has two mechanisms that keep large audits honest and complete: a read-coverage ledger that makes skipped files visible, and an optional Shard Mode that fans the audit out across subagents.
+Both the `map-project` and `audit-accessibility` skills share two mechanisms that keep large sweeps honest and complete: a coverage ledger that makes skipped files visible, and an optional Shard Mode that fans the work out across subagents. Map and audit stay symmetric — both enumerate a large scope to completeness, so both fan out the same way.
 
-### Read-coverage ledger
+### Coverage ledger
 
-The audit reads **every in-scope file end to end** — when a file is larger than a single read, it is read in paged offset chunks until it reaches EOF — and never audits a file it has only partially read. It tracks each in-scope file as **fully-read / partially-read / unread** in a read-coverage ledger carried in the report header, and reconciles that ledger against the scope the map handed it. Any file or region it could not read in full is surfaced as an explicit **coverage gap**, so "no findings here" is never confused with "not looked at here." This applies to **every** audit run.
+The audit reads **every in-scope file end to end** — when a file is larger than a single read, it is read in paged offset chunks until it reaches EOF — and never audits a file it has only partially read. It tracks each in-scope file as **fully-read / partially-read / unread** in a read-coverage ledger carried in the report header, and reconciles that ledger against the scope the map handed it. The map does the mirror-image thing: it enumerates the full in-scope file set up front and reconciles a **mapped / partially-mapped / not-yet-mapped** ledger against that denominator. Any file or region either skill could not cover in full is surfaced as an explicit **coverage gap**, so "no findings here" is never confused with "not looked at here." This applies to **every** map and audit run.
 
-### Shard Mode — subagent fan-out for large maps
+### Shard Mode — subagent fan-out for large codebases
 
-For large maps, the audit can shard across subagents — one per slice of the map — so each slice is audited to completion rather than a single agent running low on attention and disclosing a long unread-gap list. Fan-out is an **optimization layered on top of the single-agent audit, never a replacement for it**: because the read-coverage ledger keeps reporting honest in either mode, opting out of fan-out degrades *throughput*, not *correctness*.
+For large scopes, both skills can shard across subagents — one per slice of the file set (map) or the mapped worklist (audit) — so each slice is covered to completion rather than a single agent running low on attention and disclosing a long unread/un-mapped list. Fan-out is an **optimization layered on top of the single-agent path, never a replacement for it**: because the coverage ledger keeps reporting honest in either mode, opting out of fan-out degrades *throughput*, not *correctness*.
 
-Shard Mode has three states:
+Shard Mode has three states (identical for map and audit):
 
-- **Auto (default)** — shard only when the full-scope worklist is large enough to benefit: more than ~25 in-scope files, or more than ~6 shard groups (top-level mapped folders / route-groups). Below that, run single-agent, since fan-out on a small map is pure overhead.
-- **Force on (`--shard`)** — fan out regardless of size, as long as the harness is capable (or ask to "fan out" / "shard" the audit).
+- **Auto (default)** — shard only when the full-scope worklist is large enough to benefit: more than ~25 in-scope files, or more than ~6 shard groups (top-level folders / route-groups). Below that, run single-agent, since fan-out on a small scope is pure overhead.
+- **Force on (`--shard`)** — fan out regardless of size, as long as the harness is capable (or ask to "fan out" / "shard" the map/audit).
 - **Force off (`--no-shard`)** — always run single-agent, for cost control, reproducibility, or an unsupported harness (or ask to keep it single-agent).
 
-**Harness-capability fallback.** Subagent fan-out requires a harness that can spawn parallel subagents (the Claude Code `Task` tool). The Copilot, Codex, and OpenAI adapters cannot. On any harness without that capability, the audit **runs single-agent regardless of mode — including `--shard` — and produces the same report shape, with no error**; if `--shard` was requested it notes the fallback in the audit summary rather than failing the run (see [#21](https://github.com/Binclusive/Binclusive-Accessibility-Skills/issues/21)). Narrowed / single-target scopes and CI / Diff Mode never shard either — that scope is already small.
+**Harness-capability fallback (portable, not Claude-only).** Subagent fan-out requires exactly **one capability: the ability to spawn parallel sub-tasks** — and it is **portable across harnesses by capability detection**, not locked to one vendor (see [`.decisions/0001-portable-shard-mode-fanout.md`](.decisions/0001-portable-shard-mode-fanout.md) and [#21](https://github.com/Binclusive/Binclusive-Accessibility-Skills/issues/21)). The skill maps Shard Mode onto whatever parallel-subtask primitive the active harness exposes — the Claude Code `Task` tool, GitHub Copilot / Cursor parallel agents, or concurrent tool-call fan-out on Codex/OpenAI. Only a harness that exposes **no** such primitive at all **runs single-agent regardless of mode — including `--shard` — and produces the same report shape, with no error**; if `--shard` was requested it notes the fallback in the summary rather than failing the run. Narrowed / single-target scopes and CI / Diff Mode never shard either — that scope is already small.
 
-See [`skills/audit-accessibility/SKILL.md`](skills/audit-accessibility/SKILL.md) for the full Coverage and Shard Mode rules, including the deterministic merge and the 100% worklist-coverage assertion.
+See [`skills/map-project/SKILL.md`](skills/map-project/SKILL.md) and [`skills/audit-accessibility/SKILL.md`](skills/audit-accessibility/SKILL.md) for the full Coverage and Shard Mode rules, including the deterministic merge and the coverage-assertion step.
 
 ## CI/CD Accessibility Gate
 

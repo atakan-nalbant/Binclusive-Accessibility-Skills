@@ -18,8 +18,9 @@ Create an evidence-based project map for a React/Next.js web, Angular web, React
    - Whole project/app, selected routes/screens, selected components/controls, a folder path, or free-form target list?
    - Should localization/hardcoded strings be included? Default: yes.
    - Is this React/Next.js web, Angular web, React Native/Expo, ASP.NET MVC/Razor, ASPX/Web Forms, SwiftUI, UIKit, native Android (Jetpack Compose / Android Views/XML), Flutter (Dart, Material/Cupertino), or mixed mobile/web? If not, state which references are available and continue only if the user wants a best-effort map.
-5. Create `Binclusive-auditing/` in the project root if missing.
-6. Write one map file named `<project-name>_<YYYY-MM-DD>_project-map.md` inside `Binclusive-auditing/`.
+5. Choose the execution mode — single-agent or subagent fan-out (see "Shard Mode" below). This decision applies only to a **full-scope** map on a harness that can spawn subagents; narrowed/single-scope maps and CI/Diff Mode always run single-agent.
+6. Create `Binclusive-auditing/` in the project root if missing.
+7. Write one map file named `<project-name>_<YYYY-MM-DD>_project-map.md` inside `Binclusive-auditing/`.
 
 ## CI / Diff Mode
 
@@ -62,6 +63,108 @@ scopes itself, but a full map over a huge tree is exactly where the silent skip 
 See `references/coverage-ledger-example.md` for a real ledger from a 101-file iOS run
 (`101 / 101` reconciled against an enumerated denominator, with the genuine out-of-scope
 boundary named) — what an honest map coverage section looks like in practice.
+
+## Shard Mode — subagent fan-out for large codebases
+
+The Coverage rules above make an un-mapped file *visible* (it shows as `not-yet-mapped`
+in the coverage ledger), but a single agent mapping a large tree can still run low on
+attention/budget and surface a long un-mapped list instead of mapping the tail. Sharding
+the map across subagents — one per slice of the enumerated file set — lets each slice be
+mapped to completion, raising real coverage rather than just disclosing the shortfall.
+This mirrors the `audit-accessibility` skill's Shard Mode, so map and audit stay symmetric.
+
+Fan-out is an **optimization layered on top of the single-agent map, never a replacement
+for it.** The single-agent path is the portable baseline; sharding only ever *adds*
+parallelism to a full-scope map on a harness that can spawn subagents. Because the coverage
+ledger guarantees honest reporting in **either** mode, opting out of fan-out degrades
+*throughput*, not *correctness* — you get the honest un-mapped list instead of full
+coverage, never a false "everything was mapped."
+
+### Mode selection (three states; auto is the default)
+
+- **Auto (default).** Shard only when the resolved full-scope file set is large enough to
+  benefit: **more than ~25 in-scope files, or more than ~6 shard groups** (top-level
+  in-scope folders / route-groups). Below that, run single-agent — fan-out on a small tree
+  is pure overhead with no coverage gain. These numbers are guidance, not a hard gate; round
+  toward single-agent when a tree is near the line.
+- **Force on** — `--shard` argument (or the user asking to "fan out" / "shard" the map).
+  Fan out regardless of size, as long as the harness is capable.
+- **Force off** — `--no-shard` argument (or the user asking to keep it single-agent). Always
+  run single-agent, for cost control, reproducibility, or an unsupported harness.
+
+### Harness capability — use whatever parallel-subtask primitive the harness exposes
+
+Subagent fan-out needs exactly **one capability: the ability to spawn parallel sub-tasks.**
+Detect that capability and map Shard Mode onto whatever parallel-subtask primitive the
+**active** harness provides:
+
+- **Claude Code** — the `Task` tool (spawn one subagent per shard).
+- **GitHub Copilot** — its parallel agent / sub-task primitive where the runtime exposes one
+  (e.g. dispatching parallel Copilot coding-agent tasks); the Copilot adapter opts in.
+- **Cursor** — background / parallel agents.
+- **Codex / OpenAI (`agents/openai.yaml`)** — concurrent tool-call fan-out where the runtime
+  runs tool calls in parallel.
+
+If the active harness exposes **any** such primitive, **fan out through it.** The fan-out
+procedure below is written against a generic "spawn one worker per shard" primitive and is
+**identical regardless of which harness provides it** — each worker gets the same slice and
+the matching platform reference, and the deterministic merge step is unchanged. This is a
+capability check, not a vendor check: a new harness with a parallel-subtask primitive gets
+fan-out for free, with no edit here.
+
+**Fall back silently, never error.** Only when a harness exposes **no** parallel-subtask
+primitive at all do you **run single-agent regardless of mode** — including an explicit
+`--shard` — and produce the **same map shape**, with no error. In that case note the fallback
+in the map's coverage notes (one line: "fan-out unavailable on this harness; ran
+single-agent") rather than failing the run. Because the coverage ledger keeps every run honest
+on **every** harness (see "Coverage" and the fan-out merge step), the single-agent fallback
+gives up parallel wall-clock speed on large trees — never coverage or entries.
+
+This capability-detected design is the ratified choice
+(`.decisions/0001-portable-shard-mode-fanout.md`): fan-out is portable across agent harnesses —
+Claude Code, Copilot, Cursor, Codex/OpenAI, and future runtimes.
+
+### Fan-out procedure (full-scope, capable harness only)
+
+1. **Enumerate the full in-scope file set first.** Before dispatching anything, run the
+   Coverage enumeration (inspector counts, or a direct `find`) to produce the complete
+   in-scope file list. This is the master denominator the merge step reconciles 100% coverage
+   against; it is the same enumeration the single-agent path maps in order.
+2. **Build the shards.** One shard per top-level in-scope folder / route-group. Keep shards
+   roughly balanced; split an oversized folder or merge tiny sibling folders so no shard is
+   itself too large to map to completion. Every enumerated file lands in exactly one shard.
+3. **Dispatch one worker per shard** using the active harness's parallel-subtask primitive (see
+   "Harness capability"). Give each worker: its slice of the enumerated file set and **only the
+   platform mapping reference that matches the detected stack** (the same reference from "Source
+   Of Truth"; for a mixed project, the reference matching that shard's platform). Instruct each
+   subagent to follow the full Coverage rules (enumerate and read every file in its slice to
+   EOF in paged chunks) and the Required Output entry shape, and to return: (a) its map entries
+   in the standard format (pages/views/screens, shared components/controls, inline UI,
+   localization hotspots), (b) its slice of the coverage ledger (mapped / partially-mapped /
+   not-yet-mapped), and (c) any coverage gaps it hit.
+4. **Merge deterministically.** Collect all shard results and:
+   - **Concatenate entries in a deterministic order** (by Required Output layer, then by shard)
+     into the single map, keeping platform sections separate for a mixed project.
+   - **Dedupe shared components.** A shared component that several shards reference is recorded
+     **once**, with its usages unioned across shards — never one duplicate entry per consumer
+     folder. Folder shards may *reference* a shared component's usage context but contribute
+     their usage site to the single shared-component entry rather than re-declaring it.
+   - **Union the coverage ledgers** across shards into the single report-header ledger.
+   - **Assert full file-set coverage before writing.** Every file enumerated in step 1 must
+     appear in exactly one shard's results — mapped, or carried as an explicit coverage gap. If
+     a shard died or returned nothing for part of its slice, that slice is a `not-yet-mapped`
+     coverage gap (re-dispatch it if possible; otherwise record it), never silently dropped.
+5. **Write the map** exactly as the single-agent path would — same format, same coverage
+   ledger, same reconciled denominator. The map does not expose shard structure; fan-out is an
+   execution detail, not a reporting one.
+
+### When fan-out does NOT apply
+
+- **Narrowed / single-scope maps.** A map narrowed to one route/screen/component or a single
+  folder path is already small, so it runs single-agent with no fan-out overhead, even under
+  `--shard`.
+- **CI / Diff Mode.** Never shards — see that section. The diff scope is already small, so
+  fan-out would only add overhead.
 
 ## Source Of Truth
 
@@ -107,3 +210,4 @@ The map file must state:
 - If framework/platform/routing/navigation is ambiguous, ask instead of guessing.
 - If a target cannot be verified statically, mark it `needs runtime verification`.
 - If the project is huge, never silently sample a subset and present it as the whole map. Enumerate the full in-scope file set, map what you can, and record every un-mapped file as an explicit coverage gap with a count (see "Coverage"). An honest "mapped X of Y, Z remaining" beats a map that looks complete but isn't.
+- Subagent fan-out (see "Shard Mode") is an optional throughput optimization, never required, and is **portable across harnesses by capability detection** (`.decisions/0001-portable-shard-mode-fanout.md`): it runs on **whatever parallel-subtask primitive the active harness exposes** — the Claude Code `Task` tool, Copilot/Cursor parallel agents, or concurrent tool-call fan-out on Codex/OpenAI. Only a harness with **no** parallel-subtask primitive falls back to single-agent (same map shape), even under an explicit `--shard`. The single-agent path is the portable baseline; CI/Diff Mode and narrowed scopes never shard. Opting out — or running on a harness with no fan-out primitive — degrades throughput, not correctness: the coverage ledger keeps every run honest either way.

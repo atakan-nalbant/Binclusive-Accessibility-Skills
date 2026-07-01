@@ -18,7 +18,7 @@ Follow the workflow in order unless the user explicitly narrows the task:
 2. Audit second: create `Binclusive-auditing/accessibility-todo.md` from the selected map or Shopify theme source.
 3. Fix last: remediate only user-selected task IDs, SAFE tasks, severities, components, pages, screens, controls, or paths.
 
-Shard Mode (large-map audit fan-out) is portable: when the audit map is large and this Cursor runtime can dispatch parallel sub-tasks/agents (background / parallel agents), fan the audit out one worker per shard per `skills/audit-accessibility/SKILL.md` ("Harness capability" / "Fan-out procedure"), then merge deterministically. When no parallel-subtask primitive is available, run single-agent — the read-coverage ledger keeps either path honest, so the fallback costs throughput, not coverage.
+Shard Mode (large-scope map and audit fan-out) is portable: when the scope is large and this Cursor runtime can dispatch parallel sub-tasks/agents (background / parallel agents), fan out one worker per shard — per `skills/map-project/SKILL.md` for mapping and `skills/audit-accessibility/SKILL.md` for auditing ("Harness capability" / "Fan-out procedure" in each) — then merge deterministically. When no parallel-subtask primitive is available, run single-agent — the coverage ledger keeps either path honest, so the fallback costs throughput, not coverage.
 
 Respect the fix policy from `skills/fix-accessibility/SKILL.md`:
 
